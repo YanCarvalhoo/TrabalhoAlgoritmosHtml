@@ -1,9 +1,5 @@
 package visao;
 
-import negocio.AnalisadorHTML;
-import negocio.ResultadoAnalise;
-import negocio.TagFrequencia;
-
 import javax.swing.JButton;
 import javax.swing.JFileChooser;
 import javax.swing.JFrame;
@@ -19,6 +15,10 @@ import javax.swing.SwingConstants;
 import javax.swing.border.EmptyBorder;
 import javax.swing.filechooser.FileNameExtensionFilter;
 import javax.swing.table.DefaultTableModel;
+
+import controle.AnalisadorHTML;
+import controle.ResultadoAnalise;
+import controle.TagFrequencia;
 
 import java.awt.BorderLayout;
 import java.awt.Font;
