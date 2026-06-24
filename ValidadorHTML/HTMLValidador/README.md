@@ -10,9 +10,8 @@ próprio e exibe a hierarquia do documento.
 ```
 src/
   modelo/      -> estruturas de dados (Pilha, Fila, Árvore)
-  negocio/     -> regras de negócio (leitura, validação, ordenação)
-  visao/       -> interface gráfica (Swing)
-  app/         -> ponto de entrada (Main.java)
+  controle/     -> regras de negócio (leitura, validação, ordenação)
+  visao/       -> interface gráfica (Swing) | ponto de entrada (Main.java)
 testes/        -> arquivos .html de exemplo (1 válido + 4 com erros)
 ```
 
