@@ -17,9 +17,17 @@ public class TagInfo {
         this.tipo = tipo;
     }
 
-    public String getNome() { return nome; }
-    public int getLinha() { return linha; }
-    public TipoTag getTipo() { return tipo; }
+    public String getNome() { 
+    	return nome; 
+    	}
+    
+    public int getLinha() { 
+    	return linha; 
+    	}
+    
+    public TipoTag getTipo() { 
+    	return tipo; 
+    	}
 
     @Override
     public String toString() {

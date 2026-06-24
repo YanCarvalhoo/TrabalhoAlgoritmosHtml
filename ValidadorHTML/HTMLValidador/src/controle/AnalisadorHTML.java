@@ -31,14 +31,14 @@ import java.util.regex.Pattern;
  */
 public class AnalisadorHTML {
 
-    // Tags que não exigem fechamento (não devem ser empilhadas)
+    // Tags que não exigem fechamento (não devem ser empilhadas) lista 
     private static final Set<String> TAGS_SINGLETON = new HashSet<>(Arrays.asList(
             "meta", "base", "br", "col", "command", "embed", "hr",
             "img", "input", "link", "param", "source", "!doctype"
     ));
 
     // Reconhece qualquer trecho "<...>" sem '<' ou '>' dentro (já exclui comentários completos tratados à parte)
-    private static final Pattern PADRAO_TAG = Pattern.compile("<[^<>]*>");
+    private static final Pattern PADRAO_TAG = Pattern.compile("<[^<>]*>"); //  - expressão regular
 
     private Pilha<NoArvore<TagInfo>> pilha;
     private Arvore<TagInfo> arvore;
@@ -46,10 +46,10 @@ public class AnalisadorHTML {
     private Map<String, TagFrequencia> frequencias;
     private boolean bemFormatado;
 
-    public ResultadoAnalise analisar(File arquivo) throws IOException {
+    public ResultadoAnalise analisar(File arquivo) throws IOException { // File para arquivos
         pilha = new PilhaLista<>();
         arvore = new Arvore<>();
-        frequencias = new LinkedHashMap<>();
+        frequencias = new LinkedHashMap<>(); // - mantem a ordem de acesso 
         bemFormatado = true;
 
         List<String> linhas = lerLinhas(arquivo);
@@ -87,7 +87,7 @@ public class AnalisadorHTML {
 
     private List<String> lerLinhas(File arquivo) throws IOException {
         List<String> linhas = new ArrayList<>();
-        try (BufferedReader leitor = new BufferedReader(
+        try (BufferedReader leitor = new BufferedReader( // ler texto de forma eficiente, linha por linha BufferedReader.
                 new InputStreamReader(new FileInputStream(arquivo), StandardCharsets.UTF_8))) {
             String linha;
             while ((linha = leitor.readLine()) != null) {
@@ -100,45 +100,54 @@ public class AnalisadorHTML {
     // ---------------------------------------------------------------
     // Processamento de cada linha / tag
     // ---------------------------------------------------------------
-
+    
+    
+    //Percorre uma linha do HTML, identifica tags com regex e processa cada uma enquanto valida textos entre elas 
+    //e possíveis erros de formatação.
+    
     private void processarLinha(String linha, int numeroLinha) {
-        Matcher casador = PADRAO_TAG.matcher(linha);
-        int ultimaPosicao = 0;
 
-        while (casador.find()) {
-            String trechoAntes = linha.substring(ultimaPosicao, casador.start());
-            if (contemSinalSolto(trechoAntes)) {
-                registrarErroMalformada(numeroLinha);
-            }
-            ultimaPosicao = casador.end();
-            processarTag(casador.group(), numeroLinha);
+        Matcher matcher = PADRAO_TAG.matcher(linha); // -- procurar padrões dentro de um texto.
+        int posicaoAtual = 0;
+
+        while (matcher.find()) { // find () procura a próxima ocorrência do padrão no texto.
+
+            String trechoAntes = linha.substring(posicaoAtual, matcher.start()); // -- Ele corta uma parte do texto e retorna só aquela parte.
+            validarTextoSolto(trechoAntes, numeroLinha);
+
+            posicaoAtual = matcher.end();
+
+            processarTag(matcher.group(), numeroLinha); // -
         }
 
-        String resto = linha.substring(ultimaPosicao);
-        if (contemSinalSolto(resto)) {
+        String resto = linha.substring(posicaoAtual);
+        validarTextoSolto(resto, numeroLinha);
+    }
+
+    private void validarTextoSolto(String trecho, int numeroLinha) { // -- verificar se um texto contém outro texto dentro dele.
+        if (trecho.contains("<") || trecho.contains(">")) {
             registrarErroMalformada(numeroLinha);
         }
     }
 
-    private boolean contemSinalSolto(String trecho) {
-        return trecho.contains("<") || trecho.contains(">");
-    }
-
     private void processarTag(String tagBruta, int numeroLinha) {
-        // comentários HTML são ignorados (não fazem parte da validação)
-        if (tagBruta.startsWith("<!--")) {
+
+        if (tagBruta.startsWith("<!--")) { // -- verificar se uma String começa com um determinado texto.
             return;
         }
 
         String conteudo = tagBruta.substring(1, tagBruta.length() - 1).trim();
 
-        boolean fechamento = conteudo.startsWith("/");
-        if (fechamento) {
+        boolean fechamento = false;
+        boolean autoFechada = false;
+
+        if (conteudo.startsWith("/")) {
+            fechamento = true;
             conteudo = conteudo.substring(1).trim();
         }
 
-        boolean autoFechada = conteudo.endsWith("/");
-        if (autoFechada) {
+        if (conteudo.endsWith("/")) { // -- termina com um determinado texto.
+            autoFechada = true;
             conteudo = conteudo.substring(0, conteudo.length() - 1).trim();
         }
 
@@ -160,12 +169,14 @@ public class AnalisadorHTML {
     }
 
     private String extrairNomeTag(String conteudo) {
-        int posicao = 0;
-        while (posicao < conteudo.length() && !Character.isWhitespace(conteudo.charAt(posicao))) {
-            posicao++;
+        int i = 0;
+
+        while (i < conteudo.length() &&
+               !Character.isWhitespace(conteudo.charAt(i))) { // -- le caracter sem espaço em branco
+            i++;
         }
-        String nome = (posicao == conteudo.length()) ? conteudo : conteudo.substring(0, posicao);
-        return nome.toLowerCase().trim();
+
+        return conteudo.substring(0, i).toLowerCase().trim();
     }
 
     private boolean nomeValido(String nome) {
@@ -173,15 +184,16 @@ public class AnalisadorHTML {
     }
 
     private void tratarFechamento(String nomeTag, boolean singleton, int numeroLinha) {
+
         if (singleton) {
-            // tags singleton não usam fechamento; um fechamento isolado é ignorado
             return;
         }
 
         if (pilha.estaVazia()) {
             bemFormatado = false;
-            filaErros.inserir("Erro na linha " + numeroLinha + ": Foi encontrada a tag final </"
-                    + nomeTag + ">, mas nao existe tag inicial correspondente.");
+            filaErros.inserir("Erro na linha " + numeroLinha +
+                    ": Foi encontrada a tag final </" + nomeTag +
+                    ">, mas nao existe tag inicial correspondente.");
             return;
         }
 
@@ -190,8 +202,9 @@ public class AnalisadorHTML {
 
         if (!nomeTopo.equals(nomeTag)) {
             bemFormatado = false;
-            filaErros.inserir("Erro na linha " + numeroLinha + ": Foi encontrada a tag final </"
-                    + nomeTag + ">, mas era esperada a tag final </" + nomeTopo + ">.");
+            filaErros.inserir("Erro na linha " + numeroLinha +
+                    ": Foi encontrada a tag final </" + nomeTag +
+                    ">, mas era esperada a tag final </" + nomeTopo + ">.");
             return;
         }
 
@@ -199,13 +212,17 @@ public class AnalisadorHTML {
     }
 
     private void tratarAbertura(String nomeTag, TipoTag tipo, boolean singleton, int numeroLinha) {
+
         registrarFrequencia(nomeTag, tipo, numeroLinha);
 
         TagInfo info = new TagInfo(nomeTag, numeroLinha, tipo);
         NoArvore<TagInfo> novoNo = new NoArvore<>(info);
 
-        NoArvore<TagInfo> pai = pilha.estaVazia() ? arvore.getRaiz() : pilha.peek();
-        pai.InserirFilho(novoNo);
+        NoArvore<TagInfo> pai = pilha.estaVazia()
+                ? arvore.getRaiz()
+                : pilha.peek();
+
+        pai.inserirFilho(novoNo);
 
         if (!singleton) {
             pilha.push(novoNo);
@@ -214,16 +231,20 @@ public class AnalisadorHTML {
 
     private void registrarErroMalformada(int numeroLinha) {
         bemFormatado = false;
-        filaErros.inserir("Erro na linha " + numeroLinha + ": Foi encontrada uma tag malformada.");
+        filaErros.inserir("Erro na linha " + numeroLinha +
+                ": Foi encontrada uma tag malformada.");
     }
 
     private void verificarTagsNaoFinalizadas() {
+
         if (pilha.estaVazia()) {
             return;
         }
 
         bemFormatado = false;
+
         List<String> tagsEsperadas = new ArrayList<>();
+
         while (!pilha.estaVazia()) {
             NoArvore<TagInfo> no = pilha.pop();
             tagsEsperadas.add("</" + no.getInfo().getNome() + ">");

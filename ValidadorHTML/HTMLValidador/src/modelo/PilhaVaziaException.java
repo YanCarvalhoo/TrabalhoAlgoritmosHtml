@@ -1,7 +1,12 @@
 package modelo;
 
 public class PilhaVaziaException extends RuntimeException {
-    public PilhaVaziaException() {
+    /**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
+
+	public PilhaVaziaException() {
         super("A pilha esta vazia.");
     }
 }

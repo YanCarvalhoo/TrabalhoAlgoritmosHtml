@@ -35,7 +35,11 @@ import java.io.IOException;
  */
 public class TelaPrincipal extends JFrame {
 
-    private final JTextField campoCaminho = new JTextField();
+    /**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
+	private final JTextField campoCaminho = new JTextField();
     private final JButton botaoProcurar = new JButton("Procurar...");
     private final JButton botaoAnalisar = new JButton("Analisar");
 

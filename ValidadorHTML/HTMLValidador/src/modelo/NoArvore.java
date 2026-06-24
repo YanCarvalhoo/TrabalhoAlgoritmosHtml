@@ -8,22 +8,36 @@ public class NoArvore<T> {
 
     public NoArvore(T info) {
         this.info = info;
-        primeiro = null;
-        proximo = null;
-    }
-    
-    public void InserirFilho(NoArvore<T> sa)
-    {
-    	sa.setProximo(primeiro);
-    	setPrimeiro(sa);
+        this.primeiro = null;
+        this.proximo = null;
     }
 
-    public T getInfo() { return info; }
-    public void setInfo(T info) { this.info = info; }
+    public void inserirFilho(NoArvore<T> sa) {
+        sa.setProximo(primeiro);
+        this.setPrimeiro(sa);
+    }
 
-    public NoArvore<T> getPrimeiro() { return primeiro; }
-    public void setPrimeiro(NoArvore<T> esquerda) { this.primeiro = esquerda; }
+    public T getInfo() {
+        return info;
+    }
 
-    public NoArvore<T> getProximo() { return proximo; }
-    public void setProximo(NoArvore<T> direita) { this.proximo = direita; }
+    public void setInfo(T info) {
+        this.info = info;
+    }
+
+    public NoArvore<T> getPrimeiro() {
+        return primeiro;
+    }
+
+    public void setPrimeiro(NoArvore<T> primeiro) {
+        this.primeiro = primeiro;
+    }
+
+    public NoArvore<T> getProximo() {
+        return proximo;
+    }
+
+    public void setProximo(NoArvore<T> proximo) {
+        this.proximo = proximo;
+    }
 }
