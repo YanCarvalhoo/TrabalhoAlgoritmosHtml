@@ -35,11 +35,11 @@ testes/        -> arquivos .html de exemplo (1 válido + 4 com erros)
 > reescrever a lógica de pilha.
 
 ### Classes novas (lógica do trabalho)
-- `negocio.TagInfo` / `TipoTag` — dados de cada tag (nome, linha, tipo).
-- `negocio.TagFrequencia` — uma linha da tabela de frequência.
-- `negocio.MergeSort` — ordenação alfabética implementada pela equipe
+- `controle.TagInfo` / `TipoTag` — dados de cada tag (nome, linha, tipo).
+- `controle.TagFrequencia` — uma linha da tabela de frequência.
+- `controle.MergeSort` — ordenação alfabética implementada pela equipe
   (exigência obrigatória do trabalho).
-- `negocio.AnalisadorHTML` — motor da análise: lê o arquivo linha a
+- `controle.AnalisadorHTML` — motor da análise: lê o arquivo linha a
   linha, extrai as tags com expressão regular, valida com a `Pilha`,
   monta a `Arvore`, conta as frequências e registra os erros na `Fila`.
 - `visao.TelaPrincipal` — interface gráfica (Swing): campo para
@@ -81,8 +81,7 @@ A janela do **Validador de Estrutura HTML** vai abrir. Clique em
 ## Como importar em uma IDE (Eclipse / NetBeans / IntelliJ)
 
 1. Crie um novo projeto Java.
-2. Copie a pasta `src` (com as subpastas `modelo`, `negocio`, `visao`,
-   `app`) para dentro do projeto, substituindo a pasta `src` padrão.
+2. Copie a pasta `src` (com as subpastas `modelo`, `controle`, `visao`) para dentro do projeto, substituindo a pasta `src` padrão.
 3. Defina `app.Main` como classe principal (Main Class) do projeto.
 4. Execute normalmente.
 
