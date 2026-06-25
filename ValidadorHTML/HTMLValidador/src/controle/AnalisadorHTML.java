@@ -269,8 +269,8 @@ public class AnalisadorHTML {
 
     private List<TagFrequencia> construirTabelaOrdenada() {
         List<TagFrequencia> lista = new ArrayList<>(frequencias.values());
-        MergeSort.ordenar(lista);
-        return lista;
+        return MergeSort.ordenar(lista);
+					 
     }
 
     // ---------------------------------------------------------------

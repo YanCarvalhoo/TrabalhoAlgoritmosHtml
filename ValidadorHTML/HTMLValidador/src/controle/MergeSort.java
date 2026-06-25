@@ -1,68 +1,88 @@
 package controle;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
-/**
- * Implementação própria do algoritmo MergeSort, usada para ordenar
- * alfabeticamente a tabela de frequência de tags (exigência do trabalho:
- * "A ordenação deverá utilizar obrigatoriamente o algoritmo MergeSort
- * implementado pela equipe.").
- */
-public class MergeSort {
+public class MergeSort <T extends Comparable<T>>{
 
-    /**
-     * Ordena a lista in-place, em ordem crescente, usando o compareTo
-     * de cada elemento.
-     */
-    public static <T extends Comparable<T>> void ordenar(List<T> lista) {
-        if (lista.size() <= 1) {
-            return;
-        }
-        List<T> auxiliar = new ArrayList<>(lista);
-        dividir(lista, auxiliar, 0, lista.size() - 1);
+    public static <T extends Comparable<T>> List<T> ordenar(List<T> lista) {
+        T[] array = (T[]) lista.toArray(new Comparable[0]);
+        MergeSort<T> mergeSort = new MergeSort<>();
+        mergeSort.setInfo(array);
+        mergeSort.ordenar();
+        return new ArrayList<>(Arrays.asList(array));
     }
 
-    private static <T extends Comparable<T>> void dividir(List<T> lista, List<T> auxiliar, int inicio, int fim) {
-        if (inicio >= fim) {
-            return;
-        }
-        int meio = (inicio + fim) / 2;
-        dividir(lista, auxiliar, inicio, meio);
-        dividir(lista, auxiliar, meio + 1, fim);
-        intercalar(lista, auxiliar, inicio, meio, fim);
+	private T[] info;
+
+    public T[] getInfo() { 
+    	return info; 
+    }
+    
+    public void setInfo(T[] info) { 
+    	this.info = info; 
+    }
+    
+	public void ordenar() {
+        mergeSort(0, info.length - 1);
     }
 
-    private static <T extends Comparable<T>> void intercalar(List<T> lista, List<T> auxiliar, int inicio, int meio, int fim) {
-        for (int i = inicio; i <= fim; i++) {
-            auxiliar.set(i, lista.get(i));
+    private void mergeSort(int inicio, int fim) {
+        if (inicio < fim) 
+        {
+            int meio = (inicio + fim) / 2;
+            mergeSort(inicio, meio);
+            mergeSort(meio + 1, fim);
+            merge(inicio, fim, meio);
+        }
+    }
+
+    private void merge(int inicio, int fim, int meio) {
+        int tamEsquerda = meio - inicio + 1;
+        T[] esquerda = (T[]) new Comparable[tamEsquerda];
+        for (int i = 0; i < tamEsquerda; i++)
+        {
+            esquerda[i] = info[inicio + i];
         }
 
+        int tamDireita = fim - meio;
+        T[] direita = (T[]) new Comparable[tamDireita];
+        for (int i = 0; i < tamDireita; i++) 
+        {
+            direita[i] = info[meio + 1 + i];
+        }
+
+        int cEsq = 0;
+        int cDir = 0;
         int i = inicio;
-        int j = meio + 1;
-        int k = inicio;
-
-        while (i <= meio && j <= fim) {
-            if (auxiliar.get(i).compareTo(auxiliar.get(j)) <= 0) {
-                lista.set(k, auxiliar.get(i));
-                i++;
-            } else {
-                lista.set(k, auxiliar.get(j));
-                j++;
+        for (i = inicio; i <= fim; i++) 
+        {
+            if (cEsq < tamEsquerda && cDir < tamDireita) 
+            {
+                if (esquerda[cEsq].compareTo(direita[cDir]) <= 0) 
+                {
+                    info[i] = esquerda[cEsq++];
+                } 
+                else 
+                {
+                    info[i] = direita[cDir++];
+                }
+            } 
+            else 
+            {
+                break;
             }
-            k++;
         }
 
-        while (i <= meio) {
-            lista.set(k, auxiliar.get(i));
-            i++;
-            k++;
+        while (cEsq < tamEsquerda) 
+        {
+            info[i++] = esquerda[cEsq++];
         }
 
-        while (j <= fim) {
-            lista.set(k, auxiliar.get(j));
-            j++;
-            k++;
+        while (cDir < tamDireita) 
+        {
+            info[i++] = direita[cDir++];
         }
     }
 }
