@@ -1,10 +1,5 @@
 package controle;
 
-/**
- * Representa uma linha da tabela de frequência de tags:
- * nome da tag, quantas vezes apareceu, tipo (normal/singleton)
- * e a linha da primeira ocorrência.
- */
 public class TagFrequencia implements Comparable<TagFrequencia> {
 
     private String nome;
@@ -23,14 +18,22 @@ public class TagFrequencia implements Comparable<TagFrequencia> {
         frequencia++;
     }
 
-    public String getNome() { return nome; }
-    public int getFrequencia() { return frequencia; }
-    public TipoTag getTipo() { return tipo; }
-    public int getPrimeiraLinha() { return primeiraLinha; }
+    public String getNome() { 
+    	return nome; 
+    }
+    
+    public int getFrequencia() { 
+    	return frequencia; 
+    }
+    
+    public TipoTag getTipo() { 
+    	return tipo; 
+    }
+    
+    public int getPrimeiraLinha() { 
+    	return primeiraLinha; 
+    }
 
-    /**
-     * Ordenação alfabética pelo nome da tag (usada pelo MergeSort).
-     */
     @Override
     public int compareTo(TagFrequencia outra) {
         return this.nome.compareTo(outra.nome);

@@ -24,21 +24,15 @@ import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-/**
- * Lê um arquivo HTML/TXT linha a linha, valida o balanceamento das tags
- * usando uma Pilha, monta a hierarquia do documento usando uma Arvore,
- * conta a frequência de cada tag e registra os erros encontrados em uma Fila.
- */
+
 public class AnalisadorHTML {
 
-    // Tags que não exigem fechamento (não devem ser empilhadas) lista 
     private static final Set<String> TAGS_SINGLETON = new HashSet<>(Arrays.asList(
             "meta", "base", "br", "col", "command", "embed", "hr",
             "img", "input", "link", "param", "source", "!doctype"
     ));
 
-    // Reconhece qualquer trecho "<...>" sem '<' ou '>' dentro (já exclui comentários completos tratados à parte)
-    private static final Pattern PADRAO_TAG = Pattern.compile("<[^<>]*>"); //  - expressão regular
+    private static final Pattern PADRAO_TAG = Pattern.compile("<[^<>]*>");
 
     private Pilha<NoArvore<TagInfo>> pilha;
     private Arvore<TagInfo> arvore;
@@ -46,10 +40,10 @@ public class AnalisadorHTML {
     private Map<String, TagFrequencia> frequencias;
     private boolean bemFormatado;
 
-    public ResultadoAnalise analisar(File arquivo) throws IOException { // File para arquivos
+    public ResultadoAnalise analisar(File arquivo) throws IOException {
         pilha = new PilhaLista<>();
         arvore = new Arvore<>();
-        frequencias = new LinkedHashMap<>(); // - mantem a ordem de acesso 
+        frequencias = new LinkedHashMap<>();
         bemFormatado = true;
 
         List<String> linhas = lerLinhas(arquivo);
@@ -59,10 +53,12 @@ public class AnalisadorHTML {
         arvore.setRaiz(raizVirtual);
 
         int numeroLinha = 0;
-        for (String linhaTexto : linhas) {
+        for (String linhaTexto : linhas) 
+        {
             numeroLinha++;
-            if (linhaTexto.trim().isEmpty()) {
-                continue; // linhas em branco são ignoradas
+            if (linhaTexto.trim().isEmpty()) 
+            {
+                continue;
             }
             processarLinha(linhaTexto, numeroLinha);
         }
@@ -73,7 +69,8 @@ public class AnalisadorHTML {
         resultado.setBemFormatado(bemFormatado);
         resultado.setErros(filaErros);
 
-        if (bemFormatado) {
+        if (bemFormatado) 
+        {
             resultado.setTabelaFrequencia(construirTabelaOrdenada());
             resultado.setHierarquia(construirHierarquia(raizVirtual));
         }
@@ -81,58 +78,50 @@ public class AnalisadorHTML {
         return resultado;
     }
 
-    // ---------------------------------------------------------------
-    // Leitura do arquivo
-    // ---------------------------------------------------------------
-
     private List<String> lerLinhas(File arquivo) throws IOException {
         List<String> linhas = new ArrayList<>();
-        try (BufferedReader leitor = new BufferedReader( // ler texto de forma eficiente, linha por linha BufferedReader.
-                new InputStreamReader(new FileInputStream(arquivo), StandardCharsets.UTF_8))) {
+        try (BufferedReader leitor = new BufferedReader(new InputStreamReader(new FileInputStream(arquivo), StandardCharsets.UTF_8)))
+        {
             String linha;
-            while ((linha = leitor.readLine()) != null) {
+            while ((linha = leitor.readLine()) != null) 
+            {
                 linhas.add(linha);
             }
         }
         return linhas;
     }
 
-    // ---------------------------------------------------------------
-    // Processamento de cada linha / tag
-    // ---------------------------------------------------------------
-    
-    
-    //Percorre uma linha do HTML, identifica tags com regex e processa cada uma enquanto valida textos entre elas 
-    //e possíveis erros de formatação.
-    
     private void processarLinha(String linha, int numeroLinha) {
 
-        Matcher matcher = PADRAO_TAG.matcher(linha); // -- procurar padrões dentro de um texto.
+        Matcher matcher = PADRAO_TAG.matcher(linha);
         int posicaoAtual = 0;
 
-        while (matcher.find()) { // find () procura a próxima ocorrência do padrão no texto.
+        while (matcher.find()) 
+        {
 
-            String trechoAntes = linha.substring(posicaoAtual, matcher.start()); // -- Ele corta uma parte do texto e retorna só aquela parte.
+            String trechoAntes = linha.substring(posicaoAtual, matcher.start());
             validarTextoSolto(trechoAntes, numeroLinha);
 
             posicaoAtual = matcher.end();
 
-            processarTag(matcher.group(), numeroLinha); // -
+            processarTag(matcher.group(), numeroLinha);
         }
 
         String resto = linha.substring(posicaoAtual);
         validarTextoSolto(resto, numeroLinha);
     }
 
-    private void validarTextoSolto(String trecho, int numeroLinha) { // -- verificar se um texto contém outro texto dentro dele.
-        if (trecho.contains("<") || trecho.contains(">")) {
+    private void validarTextoSolto(String trecho, int numeroLinha) { 
+        if (trecho.contains("<") || trecho.contains(">")) 
+        {
             registrarErroMalformada(numeroLinha);
         }
     }
 
     private void processarTag(String tagBruta, int numeroLinha) {
 
-        if (tagBruta.startsWith("<!--")) { // -- verificar se uma String começa com um determinado texto.
+        if (tagBruta.startsWith("<!--")) 
+        {
             return;
         }
 
@@ -141,19 +130,22 @@ public class AnalisadorHTML {
         boolean fechamento = false;
         boolean autoFechada = false;
 
-        if (conteudo.startsWith("/")) {
+        if (conteudo.startsWith("/")) 
+        {
             fechamento = true;
             conteudo = conteudo.substring(1).trim();
         }
 
-        if (conteudo.endsWith("/")) { // -- termina com um determinado texto.
+        if (conteudo.endsWith("/"))
+        {
             autoFechada = true;
             conteudo = conteudo.substring(0, conteudo.length() - 1).trim();
         }
 
         String nomeTag = extrairNomeTag(conteudo);
 
-        if (nomeTag.isEmpty() || !nomeValido(nomeTag)) {
+        if (nomeTag.isEmpty() || !nomeValido(nomeTag))
+        {
             registrarErroMalformada(numeroLinha);
             return;
         }
@@ -161,9 +153,11 @@ public class AnalisadorHTML {
         boolean singleton = TAGS_SINGLETON.contains(nomeTag) || autoFechada;
         TipoTag tipo = singleton ? TipoTag.SINGLETON : TipoTag.NORMAL;
 
-        if (fechamento) {
+        if (fechamento) 
+        {
             tratarFechamento(nomeTag, singleton, numeroLinha);
-        } else {
+        } else 
+        {
             tratarAbertura(nomeTag, tipo, singleton, numeroLinha);
         }
     }
@@ -171,8 +165,8 @@ public class AnalisadorHTML {
     private String extrairNomeTag(String conteudo) {
         int i = 0;
 
-        while (i < conteudo.length() &&
-               !Character.isWhitespace(conteudo.charAt(i))) { // -- le caracter sem espaço em branco
+        while (i < conteudo.length() && !Character.isWhitespace(conteudo.charAt(i))) 
+        {
             i++;
         }
 
@@ -185,26 +179,25 @@ public class AnalisadorHTML {
 
     private void tratarFechamento(String nomeTag, boolean singleton, int numeroLinha) {
 
-        if (singleton) {
+        if (singleton) 
+        {
             return;
         }
 
-        if (pilha.estaVazia()) {
+        if (pilha.estaVazia()) 
+        {
             bemFormatado = false;
-            filaErros.inserir("Erro na linha " + numeroLinha +
-                    ": Foi encontrada a tag final </" + nomeTag +
-                    ">, mas nao existe tag inicial correspondente.");
+            filaErros.inserir("Erro na linha " + numeroLinha + ": Foi encontrada a tag final </" + nomeTag + ">, mas nao existe tag inicial correspondente.");
             return;
         }
 
         NoArvore<TagInfo> topo = pilha.peek();
         String nomeTopo = topo.getInfo().getNome();
 
-        if (!nomeTopo.equals(nomeTag)) {
+        if (!nomeTopo.equals(nomeTag))
+        {
             bemFormatado = false;
-            filaErros.inserir("Erro na linha " + numeroLinha +
-                    ": Foi encontrada a tag final </" + nomeTag +
-                    ">, mas era esperada a tag final </" + nomeTopo + ">.");
+            filaErros.inserir("Erro na linha " + numeroLinha + ": Foi encontrada a tag final </" + nomeTag + ">, mas era esperada a tag final </" + nomeTopo + ">.");
             return;
         }
 
@@ -218,26 +211,25 @@ public class AnalisadorHTML {
         TagInfo info = new TagInfo(nomeTag, numeroLinha, tipo);
         NoArvore<TagInfo> novoNo = new NoArvore<>(info);
 
-        NoArvore<TagInfo> pai = pilha.estaVazia()
-                ? arvore.getRaiz()
-                : pilha.peek();
+        NoArvore<TagInfo> pai = pilha.estaVazia()? arvore.getRaiz() : pilha.peek();
 
         pai.inserirFilho(novoNo);
 
-        if (!singleton) {
+        if (!singleton) 
+        {
             pilha.push(novoNo);
         }
     }
 
     private void registrarErroMalformada(int numeroLinha) {
         bemFormatado = false;
-        filaErros.inserir("Erro na linha " + numeroLinha +
-                ": Foi encontrada uma tag malformada.");
+        filaErros.inserir("Erro na linha " + numeroLinha + ": Foi encontrada uma tag malformada.");
     }
 
     private void verificarTagsNaoFinalizadas() {
 
-        if (pilha.estaVazia()) {
+        if (pilha.estaVazia()) 
+        {
             return;
         }
 
@@ -245,26 +237,23 @@ public class AnalisadorHTML {
 
         List<String> tagsEsperadas = new ArrayList<>();
 
-        while (!pilha.estaVazia()) {
+        while (!pilha.estaVazia()) 
+        {
             NoArvore<TagInfo> no = pilha.pop();
             tagsEsperadas.add("</" + no.getInfo().getNome() + ">");
         }
 
-        filaErros.inserir("Erro: Faltam tags finais no arquivo. Tags esperadas: "
-                + String.join(", ", tagsEsperadas));
+        filaErros.inserir("Erro: Faltam tags finais no arquivo. Tags esperadas: " + String.join(", ", tagsEsperadas));
     }
 
-    // ---------------------------------------------------------------
-    // Frequência de tags (ordenada com MergeSort)
-    // ---------------------------------------------------------------
-
     private void registrarFrequencia(String nome, TipoTag tipo, int linha) {
-        TagFrequencia tf = frequencias.get(nome);
-        if (tf == null) {
-            tf = new TagFrequencia(nome, tipo, linha);
-            frequencias.put(nome, tf);
+        TagFrequencia tagFrequencia = frequencias.get(nome);
+        if (tagFrequencia == null) 
+        {
+        	tagFrequencia = new TagFrequencia(nome, tipo, linha);
+            frequencias.put(nome, tagFrequencia);
         }
-        tf.incrementar();
+        tagFrequencia.incrementar();
     }
 
     private List<TagFrequencia> construirTabelaOrdenada() {
@@ -273,39 +262,34 @@ public class AnalisadorHTML {
 					 
     }
 
-    // ---------------------------------------------------------------
-    // Hierarquia (texto indentado a partir da Arvore)
-    // ---------------------------------------------------------------
 
     private String construirHierarquia(NoArvore<TagInfo> raizVirtual) {
         StringBuilder texto = new StringBuilder();
-        for (NoArvore<TagInfo> filho : filhosEmOrdemDeInsercao(raizVirtual)) {
+        for (NoArvore<TagInfo> filho : filhosEmOrdemDeInsercao(raizVirtual)) 
+        {
             adicionarHierarquia(texto, filho, 0);
         }
         return texto.toString();
     }
 
     private void adicionarHierarquia(StringBuilder texto, NoArvore<TagInfo> no, int nivel) {
-        for (int i = 0; i < nivel; i++) {
+        for (int i = 0; i < nivel; i++)
+        {
             texto.append("    ");
         }
         texto.append("<").append(no.getInfo().getNome()).append(">\n");
 
-        for (NoArvore<TagInfo> filho : filhosEmOrdemDeInsercao(no)) {
+        for (NoArvore<TagInfo> filho : filhosEmOrdemDeInsercao(no)) 
+        {
             adicionarHierarquia(texto, filho, nivel + 1);
         }
     }
 
-    /**
-     * NoArvore.InserirFilho() sempre insere no início da lista de filhos,
-     * então a ordem natural de "getPrimeiro()/getProximo()" fica invertida
-     * em relação à ordem de leitura do arquivo. Aqui reconstituímos a
-     * ordem correta apenas para exibição, sem alterar a Arvore original.
-     */
     private List<NoArvore<TagInfo>> filhosEmOrdemDeInsercao(NoArvore<TagInfo> no) {
         List<NoArvore<TagInfo>> filhos = new ArrayList<>();
         NoArvore<TagInfo> p = no.getPrimeiro();
-        while (p != null) {
+        while (p != null) 
+        {
             filhos.add(p);
             p = p.getProximo();
         }
